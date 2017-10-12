@@ -1,7 +1,7 @@
 ﻿## 动态数据绑定（一）
 
 [这里是任务描述][1]
-  [1]: https://github.com/seasonrui/vue-sourcecode-learning/
+  [1]: ./task.md
 ***
 监听对象属性的变化，有两种方式：
 

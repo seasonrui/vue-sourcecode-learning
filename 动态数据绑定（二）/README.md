@@ -1,6 +1,6 @@
 ## 动态数据绑定（二）
 [这里是任务描述][1]
-  [1]: https://github.com/seasonrui/vue-sourcecode-learning/
+  [1]: ./task.md
 ***
 
 > 如果传入参数对象是一个“比较深”的对象（也就是其属性值也可能是对象），那该怎么办呢？
