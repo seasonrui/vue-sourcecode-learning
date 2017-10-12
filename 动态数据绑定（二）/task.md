@@ -59,8 +59,6 @@
 在线学习参考资料
 --------
 
-[发布-订阅模式][1] 
+[发布-订阅模式](https://juejin.im/entry/580b5553570c350068e6c2d6) 
 
-更多设计模式相关的资料强烈推荐曾探所著[《JavaScript设计模式与开发实践][2]》
-  [1]: https://juejin.im/entry/580b5553570c350068e6c2d6
-  [2]: https://book.douban.com/subject/26382780/
+更多设计模式相关的资料强烈推荐曾探所著[《JavaScript设计模式与开发实践](https://book.douban.com/subject/26382780/)》
