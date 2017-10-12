@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>动态数据绑定（五）</title>
+</head>
+<body>
+  <div id="app">
+    <p>姓名：{{ user.name }}</p>
+    <p>年龄：{{user.age}}</p>
+  </div>
+
+<script type="text/javascript">
+
+
+function Vue(obj) {
+  this.el = obj.el;
+  this.data = obj.data;
+  
+  this.observer = new Observer(this.data);
+  this.render = new Render(this.el, this.data);
+  // this.watcher = new Watcher();
+}
+// 这应该和Event一样 不需要
+// // 订阅－发布模式
+// function Watcher (el, data) {
+//   this.data = data;
+//   // 遍历dom上的所有属性 有的话才触发更新
+// }
+// Watcher.prototype.on = function () {
+
+// }
+// Watcher.prototype.emit = function () {
+  
+// }
+
+/*-----------------渲染dom元素---------------*/
+
+function Render(el, data) {
+  
+  this.el = el;
+  this.data = data;
+  this.start();
+}
+Render.prototype.start = function () {
+  var el = document.querySelectorAll(this.el);
+  this.dfs(el[0]);
+
+}
+Render.prototype.dfs = function (el) {
+  // 递归遍历所有的dom子元素 找到 {{}} 进行替换
+
+  var childNodes = el.childNodes;
+  
+  childNodes.forEach((item) => {
+    
+    if(item.nodeType === 1) { // 元素节点
+      this.dfs(item);
+    } else if (item.nodeType === 3) { //文本内容
+     
+      var value = item.nodeValue.trim();
+      if (value) {
+        console.log('值是' + value);
+        // 匹配{{}}
+        // \b\{{\s*\}\}\b
+        // 看下有问号和没问号的区别
+        this.replaceReg(item, value);
+      }
+      
+    }
+  })
+
+}
+
+Render.prototype.replaceReg = function (node, value) {
+
+  var matchArr = value.match(/{{(.*?)}}/g);
+      
+  matchArr.forEach((item) => {
+
+    var newVal = this.getValue(item);
+    node.nodeValue = node.nodeValue.replace(item, newVal);
+
+  })
+
+}
+
+Render.prototype.getValue = function (str) {
+  str = str.replace(/(\{)|(\})/g, "").trim();
+  var obj = str.split('.')[0];
+  var attr = str.split('.')[1];
+  return this.data[obj][attr];
+}
+
+
+
+/*-----------------------监听变化--------------------*/
+function Observer(data, path, $parent) {
+  
+  this.data = data;
+  console.log(this.data);
+  this.$parent = (typeof $parent === 'undefined') ? null : $parent;
+  this.makeObserver(data, path, $parent);
+  // this.eventsBus = new Event();
+  this.dep = new Dep();
+}
+
+Observer.prototype.makeObserver = function(data, path, $parent) {
+  var self = this;
+  for (var i in data) {
+    if (data.hasOwnProperty(i)) {
+      var new_path = (typeof path === 'undefined') ? i : (path + '.' + i);
+      if (typeof data[i] === 'object') {
+        new Observer(data[i], new_path, self);
+      } else {
+        this.getset(i, data[i], new_path);
+      }
+    }
+  }
+}
+
+Observer.prototype.getset = function (i, value, path) {
+  let val = value;
+  let self = this;
+  Object.defineProperty(this.data, i, {
+    configurable: true,
+    enumerable: true,
+    get: function () {
+      console.log('你访问了' + i);
+      return val;
+    },
+    set: function (newval) {
+      self.bubble(self, path, val, newval); // 事件冒泡
+      if(typeof newval === 'object') {
+        new Observer(val);
+      }
+      console.log('你设置了' + i + ',新的值为' + newval);
+      val = newval;
+    }
+  })
+}
+
+// 往上层传递 沿着父对象往上传递
+Observer.prototype.bubble = function (self, path, val, newval) {
+  if (self === null) 
+    return;
+  var params = Array.prototype.slice.call(arguments, 1);
+  // self.eventsBus.emit(params[0], params[1], params[2]);
+  dep.notify();
+  var parent_path = path.split('.').slice(0, -1).join('.');
+  self.bubble(self.$parent, parent_path, val, newval);  //关键点
+}
+
+Observer.prototype.$watch = function (attr, callback){
+  // 注册一个监听事件
+  this.eventsBus.on(attr, callback);
+}
+
+
+
+
+function Dep () {
+  this.subs = [];
+}
+
+Dep.prototype.notify = function () {
+  this.subs.forEach((item) => {
+    item.update();
+  })
+}
+
+
+
+
+/*-----------------------事件中心--------------------*/
+function Event() {
+  this.events = {};
+}
+Event.prototype.on = function (attr, callback) {
+  if (this.events[attr]){
+    this.events[attr].push(callback);
+  } else {
+    this.events[attr] = [callback];
+  }
+}
+Event.prototype.emit = function (attr, val, newval) {
+  console.log('变化');
+  // 触发更新
+
+
+  this.events[attr] && this.events[attr].forEach(function(item) {
+      item(newval);
+    })
+}
+
+
+let app = new Vue({
+  el: '#app',
+  data: {
+    user: {
+      name: 'season',
+      age: 25
+    }
+  }
+})
+// app.observer.$watch('age', function(age) {
+//   console.log(`我的年纪变了，现在已经是：${age}岁了`)
+// });
+
+app.observer.$watch('user', function(newName) {
+  // console.log('监听到变化');
+  
+  console.log('我的属性变了,新的值是' + newName);
+});
+
+console.log(app.data.user.age);
+console.log(app.data.user.age = 100);
+console.log(app.data.user.name = 'season2');
+</script>
+</body>
+</html>

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>监听对象的变化（一）</title>
+</head>
+<body>
+
+<script type="text/javascript">
+
+function Observer (data) {
+  return new Proxy(data, {
+    get: function (target, propKey) {
+      if (propKey in target) {
+        console.log('你访问了' + propKey);
+        return target[propKey];
+      } else {
+        console.log("Property \"" + propKey + "\" does not exist.");
+      }
+    },
+    set: function (target, propKey, value) {
+      console.log('你设置了' + propKey + ',新的值为' + value);
+      target[propKey] = value;
+    }
+  })
+}
+
+let app1 = new Observer({
+  name: 'youngwind',
+  age: 25
+})
+let app2 = new Observer({
+  university: 'bupt',
+  major: 'computer'
+})
+console.log(app1.name); // 你访问了name
+console.log(app1.age = 100); // 你设置了25,新的值为100
+console.log(app2.university); // 你访问了university
+console.log(app2.major = 'science'); // 你设置了computer,新的值为science
+</script>
+</body>
+</html>

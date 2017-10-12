@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>动态数据绑定（三）</title>
+</head>
+<body>
+
+<script type="text/javascript">
+
+
+function Observer(data, path, $parent) {
+  this.data = data;
+  this.$parent = (typeof $parent === 'undefined') ? null : $parent;
+  this.makeObserver(data, path, $parent);
+  this.eventsBus = new Event();
+}
+
+Observer.prototype.makeObserver = function(data, path, $parent) {
+  var self = this;
+  for (var i in data) {
+    if (data.hasOwnProperty(i)) {
+      var new_path = (typeof path === 'undefined') ? i : (path + '.' + i);
+      if (typeof data[i] === 'object') {
+        new Observer(data[i], new_path, self);
+      } else {
+        this.getset(i, data[i], new_path);
+      }
+    }
+  }
+}
+
+
+Observer.prototype.getset = function (i, value, path) {
+  let val = value;
+  let self = this;
+  Object.defineProperty(this.data, i, {
+    configurable: true,
+    enumerable: true,
+    get: function () {
+      console.log('你访问了' + i);
+      return val;
+    },
+    set: function (newval) {
+      self.bubble(self, path, val, newval); // 事件冒泡
+      if(typeof newval === 'object') {
+        new Observer(val);
+      }
+      console.log('你设置了' + i + ',新的值为' + newval);
+      val = newval;
+    }
+  })
+}
+
+// 往上层传递 沿着父对象往上传递
+Observer.prototype.bubble = function (self, path, val, newval) {
+  if (self === null) 
+    return;
+  var params = Array.prototype.slice.call(arguments, 1);
+  self.eventsBus.emit(params[0], params[1], params[2]);
+  var parent_path = path.split('.').slice(0, -1).join('.');
+  self.bubble(self.$parent, parent_path, val, newval);  //关键点
+}
+
+function Event() {
+  this.events = {};
+}
+Event.prototype.on = function (attr, callback) {
+  if (this.events[attr]){
+    this.events[attr].push(callback);
+  } else {
+    this.events[attr] = [callback];
+  }
+}
+Event.prototype.emit = function (attr, val, newval) {
+  // console.log(this.events);
+  this.events[attr] && this.events[attr].forEach(function(item) {
+      item(newval);
+    })
+}
+
+Observer.prototype.$watch = function (attr,callback){
+  // 注册一个监听事件
+  this.eventsBus.on(attr, callback);
+}
+
+let app1 = new Observer({
+  age: 25,
+  name: {
+    firstName: 'rui',
+    lastName: 'sun'
+  }
+})
+app1.$watch('age', function(age) {
+  console.log(`我的年纪变了，现在已经是：${age}岁了`)
+});
+
+app1.$watch('name', function(newName) {
+  console.log('我的名字变了,新的值是' + newName);
+});
+
+console.log(app1.data.age = 100);
+console.log(app1.data.name.lastName = 'season');
+
+</script>
+</body>
+</html>

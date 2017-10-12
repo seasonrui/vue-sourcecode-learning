@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>动态数据绑定（三）</title>
+</head>
+<body>
+
+<script type="text/javascript">
+
+
+function Observer(data) {
+  this.data = data;
+  this.dep = new Dep();
+  this.makeObserver(data);
+}
+
+Observer.prototype.makeObserver = function(data) {
+  var self = this;
+  for (var i in data) {
+    if (data.hasOwnProperty(i)) {
+      
+      if (typeof data[i] === 'object') {
+        var childOb = new Observer(data[i]);
+      } else {
+        this.getset(i, data[i]);
+      }
+    }
+  }
+}
+
+
+Observer.prototype.getset = function (i, value) {
+  let val = value;
+  let self = this;
+
+  // 闭包存储了一个Dep对象
+  let dep = new Dep();
+
+
+  Object.defineProperty(this.data, i, {
+    configurable: true,
+    enumerable: true,
+    get: function () {
+      console.log('你访问了' + i);
+      return val;
+      // 进行依赖收集
+      if(Dep.target) {
+        dep.depend();
+        if(childOb) {
+          childOb.dep.depend();
+        }
+      }
+    },
+    set: function (newval) {
+      
+      if(typeof newval === 'object') {
+        var childOb = new Observer(val);
+      }
+      console.log('你设置了' + i + ',新的值为' + newval);
+      val = newval;
+
+      dep.notify();
+    }
+  })
+}
+
+// 发布者 可以订阅多个观察者，收集依赖后Deps中会有存在一个或多个Watcher对象，在数据变更的时候通知所有的观察者
+function Dep () {
+  this.subs = [];
+}
+Dep.target = null;
+
+// 收集依赖
+Dep.prototype.depend = function () {
+  Dep.target.addDep(this);
+}
+// 添加观察者对象
+Dep.prototype.addSub = function (obj) {
+  this.subs.push(obj);
+}
+// 通知所有订阅者
+Dep.prototype.notify = function () {
+  this.subs.forEach((item) => {
+    console.log(item);
+    item.update();
+  })
+}
+
+
+// watcher对象保存在Deps中，数据变动的时候由Deps通知Watcher实例，然后由Watcher实例回调进行视图的更新
+
+function Watcher(obj, attr, callback) {
+  this.obj = obj;
+  this.attr = attr;
+  this.get();
+}
+Watcher.prototype.beforeGet = function () {
+  Dep.target = this;
+}
+// 将自身watcher观察者实例设置给Dep.target, 用于依赖收集
+Watcher.prototype.get = function () {
+  
+  this.beforeGet();
+  let val = this.obj[this.attr];
+
+  if(typeof val === 'object') {
+    for(let childAttr in val){
+      new Watcher(val[childAttr], childAttr);
+    }
+  }
+}
+
+// 添加依赖关系到Deps集合中
+Watcher.prototype.addDep = function () {
+  dep.addSub(this);
+  console.log("我订阅了basicInfo的变化")
+}
+
+Watcher.prototype.update = function () {
+  console.log('更新');
+}
+
+
+//测试
+let app = new Observer({
+  basicInfo: {
+    name: 'liujianhuan',
+    age: 25
+  },
+  address: 'Beijing'
+});
+console.log(app.data.address);
+console.log(app.data.basicInfo.age);
+let watcher = new Watcher(app.data, "basicInfo");//我订阅了app.data中的basicInfo的变化
+app.data.basicInfo.age = 24;//name或者age变了，导致basicInfo变了，但是我要根据数据的变化来做一些牛逼的事情
+
+
+
+// let app1 = new Observer({
+//   age: 25,
+//   name: {
+//     firstName: 'rui',
+//     lastName: 'sun'
+//   }
+// })
+// app1.$watch('age', function(age) {
+//   console.log(`我的年纪变了，现在已经是：${age}岁了`)
+// });
+
+// app1.$watch('name', function(newName) {
+//   console.log('我的名字变了,新的值是' + newName);
+// });
+
+// console.log(app1.data.age = 100);
+// console.log(app1.data.name.lastName = 'season');
+
+</script>
+</body>
+</html>

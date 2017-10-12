@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>动态数据绑定（二）</title>
+</head>
+<body>
+
+<script type="text/javascript">
+function Observer(data) {
+  this.data = data;
+  this.makeObserver(data);
+  this.eventsBus = new Event();
+}
+
+Observer.prototype.makeObserver = function(data) {
+  for(var i in data) {
+    if(data.hasOwnProperty(i)) {
+      if(typeof data[i] === 'object') {
+        new Observer(data[i]);
+      }
+      this.getset(i, data[i]);
+    }
+  }
+}
+
+Observer.prototype.getset = function(i, value) {
+  let val = value;
+  let that = this;
+  Object.defineProperty(this.data, i, {
+    configurable: true,
+    enumerable: true,
+    get: function () {
+      console.log('你访问了' + i);
+      return val;
+    },
+    set: function (newval) {
+      console.log('你设置了' + i + ',新的值为' + newval);
+      if(typeof newval === 'object') { //对新对象也进行监听
+        new Observer(newval);
+      }
+      if(newval !== val) {
+        // 触发
+        that.eventsBus.emit(i, newval);
+        val = newval;
+      }
+    }
+  })
+}
+
+
+function Event() {
+  this.events = {};
+}
+Event.prototype.on = function (attr, callback) {
+  if (this.events[attr]){
+    this.events[attr].push(callback);
+  } else {
+    this.events[attr] = [callback];
+  }
+}
+Event.prototype.emit = function (attr, newval) {
+  console.log(this.events); // 每一层的event都是独立的，深层对象属性触发的时候可以看出this.events里为空。
+  for(var item in this.events) {
+    if(item === attr) {
+      this.events[attr].forEach(function(item) {
+        item(newval);
+      })
+    }
+  }
+}
+
+Observer.prototype.$watch = function (attr,callback){
+  // 注册一个监听事件
+  this.eventsBus.on(attr, callback);
+}
+
+let app1 = new Observer({
+  age: 25,
+  name: {
+    firstName: 'rui',
+    lastName: 'sun'
+  }
+})
+app1.$watch('age', function(age) {
+  console.log(`我的年纪变了，现在已经是：${age}岁了`)
+});
+app1.$watch('lastName', function(lastName) {
+  console.log(`我的名字变了，现在已经是：${lastName}了`)
+});
+
+console.log(app1.data.age = 100);
+console.log(app1.data.name.lastName = 'season');
+
+
+</script>
+</body>
+</html>
