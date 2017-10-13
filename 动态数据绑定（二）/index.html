@@ -2,6 +2,7 @@
 <html>
 <head>
   <title>动态数据绑定（二）</title>
+  <meta charset="utf-8">
 </head>
 <body>
 
@@ -35,7 +36,7 @@ Observer.prototype.getset = function(i, value) {
     },
     set: function (newval) {
       console.log('你设置了' + i + ',新的值为' + newval);
-      if(typeof newval === 'object') { //对新对象也进行监听
+      if(typeof newval === 'object') { //新值也是对象的话 对其进行监听
         new Observer(newval);
       }
       if(newval !== val) {
@@ -59,6 +60,7 @@ Event.prototype.on = function (attr, callback) {
   }
 }
 Event.prototype.emit = function (attr, newval) {
+  console.log('当前observer的events:');
   console.log(this.events); // 每一层的event都是独立的，深层对象属性触发的时候可以看出this.events里为空。
   for(var item in this.events) {
     if(item === attr) {
@@ -82,14 +84,20 @@ let app1 = new Observer({
   }
 })
 app1.$watch('age', function(age) {
-  console.log(`我的年纪变了，现在已经是：${age}岁了`)
+  console.log('我的年纪变了，现在已经是：' + age + '岁了')
+});
+app1.$watch('name', function(lastName) {
+  console.log('我的名字变了，现在已经是：' + lastName + '了')
 });
 app1.$watch('lastName', function(lastName) {
-  console.log(`我的名字变了，现在已经是：${lastName}了`)
+  console.log('我的lastName变了，现在已经是：' + lastName + '了')
 });
 
 console.log(app1.data.age = 100);
-console.log(app1.data.name.lastName = 'season');
+console.log('----------------');
+console.log(app1.data.name = 'season');
+console.log('----------------');
+console.log(app1.data.name.lastName = 'season'); //自定义事件不会触发
 
 
 </script>

@@ -9,27 +9,32 @@
 <script type="text/javascript">
 function Observer(data) {
   this.data = data;
-  this.getset(data);
+  this.makeObserver(data);
 }
 
-Observer.prototype.getset = function(data) {
-  for(var key in data) {
-    if(data.hasOwnProperty(key)) {
-      var val = data[key];
-      Object.defineProperty(data, key, {
-        configurable: true,
-        enumerable: true,
-        get: function () {
-          console.log('你访问了' + key);
-          return val;
-        },
-        set: function (newval) {
-          console.log('你设置了' + val + ',新的值为' + newval);
-          val = newval;
-        }
-      })
+Observer.prototype.makeObserver = function(data) {
+  for(var i in data) {
+    if(data.hasOwnProperty(i)) {
+      this.getset(i, data[i]);
     }
   }
+}
+
+Observer.prototype.getset = function(i, value) {
+  let val = value;
+  let that = this;
+  Object.defineProperty(this.data, i, {
+    configurable: true,
+    enumerable: true,
+    get: function () {
+      console.log('你访问了' + i);
+      return val;
+    },
+    set: function (newval) {
+      console.log('你设置了' + i + ',新的值为' + newval);
+      val = newval;
+    }
+  })
 }
 
 let app1 = new Observer({
@@ -40,10 +45,11 @@ let app2 = new Observer({
   university: 'bupt',
   major: 'computer'
 })
+
 console.log(app1.data.name); // 你访问了name
-console.log(app1.data.age = 100); // 你设置了25,新的值为100
+console.log(app1.data.age = 100); // 你设置了age,新的值为100
 console.log(app2.data.university); // 你访问了university
-console.log(app2.data.major = 'science'); // 你设置了computer,新的值为science
+console.log(app2.data.major = 'science'); // 你设置了major,新的值为science
 </script>
 </body>
 </html>

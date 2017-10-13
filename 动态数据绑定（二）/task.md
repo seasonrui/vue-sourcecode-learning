@@ -23,7 +23,7 @@
      }
     }
 
-如果设置新的值是一个对象的话，新设置的对象的属性是否能能继续响应 getter 和 setter。举个例子。
+如果设置新的值是一个对象的话，新设置的对象的属性是否能继续响应 getter 和 setter。举个例子。
 
     let app1 = new Observer({
              name: 'youngwind',

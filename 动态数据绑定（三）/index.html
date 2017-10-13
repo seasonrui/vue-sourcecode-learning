@@ -2,6 +2,7 @@
 <html>
 <head>
   <title>动态数据绑定（三）</title>
+  <meta charset="utf-8">
 </head>
 <body>
 
@@ -91,7 +92,7 @@ let app1 = new Observer({
   }
 })
 app1.$watch('age', function(age) {
-  console.log(`我的年纪变了，现在已经是：${age}岁了`)
+  console.log('我的年纪变了，现在已经是：' + age + '岁了')
 });
 
 app1.$watch('name', function(newName) {
@@ -99,7 +100,7 @@ app1.$watch('name', function(newName) {
 });
 
 console.log(app1.data.age = 100);
-console.log(app1.data.name.lastName = 'season');
+console.log(app1.data.name.lastName = 'season'); 
 
 </script>
 </body>

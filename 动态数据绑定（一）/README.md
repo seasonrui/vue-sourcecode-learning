@@ -55,27 +55,32 @@ get函数return data[key]，导致get函数返回时又触发了get函数，陷�
 
     function Observer(data) {
       this.data = data;
-      this.getset(data);
+      this.makeObserver(data);
     }
-    Observer.prototype.getset = function(data) {
-      for(var key in data) {
-        var val = data[key];
-        if(data.hasOwnProperty(key)) {
-          Object.defineProperty(data, key, {
-            configurable: true,
-            enumerable: true, 
-            //writable: true, //这里不能定义此属性，报错：Uncaught TypeError: Invalid property descriptor. Cannot both specify accessors and a value or writable attribute, #<Object>
-            get: function () {
-              console.log('你访问了' + key);
-              return val;
-            },
-            set: function (newval) {
-              console.log('你设置了' + val + ',新的值为' + newval);
-              val = newval;
-            }
-          })
+
+    Observer.prototype.makeObserver = function(data) {
+      for(var i in data) {
+        if(data.hasOwnProperty(i)) {
+          this.getset(i, data[i]);
         }
       }
+    }
+
+    Observer.prototype.getset = function(i, value) {
+      let val = value;
+      let that = this;
+      Object.defineProperty(this.data, i, {
+        configurable: true,
+        enumerable: true,
+        get: function () {
+          console.log('你访问了' + i);
+          return val;
+        },
+        set: function (newval) {
+          console.log('你设置了' + i + ',新的值为' + newval);
+          val = newval;
+        }
+      })
     }
 
 ####方式二：ES6的拦截器proxy
